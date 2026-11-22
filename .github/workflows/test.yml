@@ -29,3 +29,32 @@ jobs:
       - name: Build all workspaces with Rage
         run: npm run build-all
 
+      - name: Run tests
+        run: npm test
+
+      - name: Test shared genesis planner and browser controllers
+        run: npm test -w @leofcoin/lib -w @leofcoin/node
+
+      - name: Test packed launcher with registry transports and real genesis
+        run: npm run test:package -w @leofcoin/launch-chain
+
+      - name: Test durable faucet payouts and HTTP limits
+        run: npm test -w @leofcoin/faucet
+
+      - name: Run multi-process E2E tests
+        run: node --test test/e2e/*.test.js
+
+      - name: Verify real transfers, cold sync and restart across isolated nodes
+        timeout-minutes: 5
+        run: npm run test:chain-benchmark && npm run test:e2e:chain-runtime
+
+      - name: Verify four-validator quorum, partitions and crash recovery
+        timeout-minutes: 5
+        run: npm run test:e2e:consensus-runtime
+
+      # Keep browser failures visible without preventing the chain's distributed
+      # recovery/consensus checks from being executed first.
+      - name: Test browser wallet and passkey unlock
+        timeout-minutes: 8
+        working-directory: packages/node
+        env:
