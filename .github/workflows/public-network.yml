@@ -1,0 +1,30 @@
+name: Public network observers
+
+on:
+  workflow_dispatch:
+    inputs:
+      minutes:
+        description: Observer runtime in minutes (maximum 60)
+        required: false
+        default: '30'
+  schedule:
+    - cron: '41 */6 * * *'
+
+concurrency:
+  group: leofcoin-public-network-observers
+  cancel-in-progress: false
+
+jobs:
+  observe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Use Node.js 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24.x
+          cache: npm
