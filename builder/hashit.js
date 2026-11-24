@@ -60,3 +60,33 @@ const readAndCache = (file) =>
     }
   })
 
+class HashStream extends Readable {
+  constructor(hashes, opt) {
+    super(opt)
+    this.hashes = hashes
+  }
+
+  _read() {
+    this.push(this.hashes)
+    this.push(null)
+  }
+}
+
+const _createHash = (input) =>
+  new Promise((resolve) => {
+    const hash = createHash('SHA1')
+    new HashStream(input).pipe(hash).setEncoding('hex').pipe(new CacheStream(resolve))
+  })
+
+export default async ({ project, files }) => {
+  // new Promise(async (resolve) => {
+  let changed = false
+  let originalHash
+  let promises = []
+
+  for (const file of files) {
+    promises.push(readAndCache(file))
+  }
+
+  const PROJECT_CACHE_PATH = join(CACHE_PATH, project)
+
