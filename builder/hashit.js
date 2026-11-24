@@ -90,3 +90,19 @@ export default async ({ project, files }) => {
 
   const PROJECT_CACHE_PATH = join(CACHE_PATH, project)
 
+  if (promises.length === 0) return
+
+  try {
+    originalHash = (await readFile(PROJECT_CACHE_PATH)).toString()
+  } catch (error) {}
+
+  let hash
+  promises = await Promise.all(promises)
+  hash = await _createHash(promises.join())
+  if (String(originalHash) !== String(hash.toString())) {
+    changed = true
+    await writeFile(PROJECT_CACHE_PATH, hash)
+  }
+  return { changed, hash: hash.toString(), project }
+  // })
+}
