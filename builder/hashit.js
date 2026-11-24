@@ -32,3 +32,31 @@ class CompareStream extends Writable {
     callback()
   }
   async _write(chunk, encoding, callback) {
+    let changed = true
+    const chunkString = chunk.toString('hex')
+    if (this.fd) {
+      await this.fd.close()
+      const hash = await readFile(this.path)
+      console.log(hash.toString() === chunkString)
+      if (hash.toString() === chunkString) {
+        changed = false
+      }
+    }
+
+    if (changed) await writeFile(this.path, chunk)
+    this.resolver({ hash: chunkString, project: this.project, changed })
+    // fs.write(this.fd, chunk, callback)
+  }
+}
+
+const readAndCache = (file) =>
+  new Promise((resolve) => {
+    const hash = createHash('SHA1')
+    try {
+      const input = createReadStream(file)
+      input.pipe(hash).setEncoding('hex').pipe(new CacheStream(resolve))
+    } catch (error) {
+      console.error(error)
+    }
+  })
+
