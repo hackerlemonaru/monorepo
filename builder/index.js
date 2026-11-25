@@ -33,3 +33,37 @@ const transformWorkspaceDir = async (root) =>
   await Promise.all(
     (
       await readdir(root)
+    ).map(async (project) => {
+      let files = []
+      try {
+        const _files = await glob([`${root}/${project}/src/**`])
+        for await (const file of _files) {
+          const stats = await stat(file)
+          if (stats.isFile()) files.push(file)
+        }
+      } catch (error) {
+        console.warn(`no files found, make sure all source files are in ${join(root, project, 'src')}`)
+      }
+      return { root, project, files }
+    })
+  )
+
+const checkCache = async () => {
+  try {
+    const fd = await open(CACHE_PATH)
+    await fd.close()
+  } catch (error) {
+    await mkdir(CACHE_PATH)
+  }
+}
+let projectDirs
+
+const priorityProjects = []
+
+const nonPriorityProjects = []
+
+const sortProjects = () => {
+  for (const project of [...projectDirs]) {
+    if (orderedList.includes(project.project)) {
+      projectDirs.slice(projectDirs.indexOf(project), '1')
+      priorityProjects.push(project)
