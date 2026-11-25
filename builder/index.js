@@ -96,3 +96,39 @@ const buildNonPriority = async () => {
           count = 0
         }
         if (result.changed || process.argv.includes('--all')) {
+          promises.push(build(root, result.project))
+        }
+        count += 1
+      }
+    }
+
+    if (promises.length > 0) await Promise.all(promises)
+  } catch (error) {
+    console.log(error.message)
+    if (error.message.includes('Missing script: "build"')) {
+      console.warn(`no npm run build command present for ${project}`)
+    }
+    throw error
+  }
+}
+
+// const result = await Promise.all(promises)
+// console.log(result)
+const tasks = new Listr([
+  {
+    title: 'Check requirements',
+    task: () =>
+      new Listr([
+        {
+          title: 'cache',
+          task: () => checkCache()
+        }
+      ])
+  },
+  {
+    title: 'Get projects',
+    task: () =>
+      new Listr([
+        {
+          title: 'getting projects',
+          task: async () => (projectDirs = await transformWorkspaceDir(root))
