@@ -67,3 +67,32 @@ const sortProjects = () => {
     if (orderedList.includes(project.project)) {
       projectDirs.slice(projectDirs.indexOf(project), '1')
       priorityProjects.push(project)
+    } else {
+      nonPriorityProjects.push(project)
+    }
+  }
+}
+
+const buildPriority = async () => {
+  const results = await Promise.all(priorityProjects.map((project) => hashit(project)))
+  for (const result of results) {
+    if (result) {
+      if (result.changed || process.argv.includes('--all'))
+        if (orderedList.includes(result.project)) await build(root, result.project)
+    }
+  }
+}
+
+const buildNonPriority = async () => {
+  const results = await Promise.all(nonPriorityProjects.map((project) => hashit(project)))
+  let promises = []
+  let count = 0
+  try {
+    for (const result of results) {
+      if (result) {
+        if (count === availableCpuCores) {
+          await Promise.all(promises)
+          promises = []
+          count = 0
+        }
+        if (result.changed || process.argv.includes('--all')) {
