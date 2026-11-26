@@ -54,3 +54,24 @@ The **Release packages** workflow exposes the same process through
 
 Before publishing a package for the first time, configure its npm Trusted
 Publisher with:
+
+- Provider: GitHub Actions
+- Organization or user: `leofcoin`
+- Repository: `monorepo`
+- Workflow filename: `release-packages.yml`
+- Allowed action: `npm publish`
+
+Every public workspace package must be configured once. The workflow requests
+GitHub's `id-token: write` permission, npm exchanges that identity for a
+short-lived credential, and npm attaches provenance to public packages
+automatically.
+
+With an interactive npm login that owns all workspace packages, configure them
+in one pass:
+
+```sh
+npm run release:trust
+```
+
+This invokes npm's official `npm trust github` command for every public
+workspace. It does not publish packages.
