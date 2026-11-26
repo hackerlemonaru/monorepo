@@ -132,3 +132,32 @@ const tasks = new Listr([
         {
           title: 'getting projects',
           task: async () => (projectDirs = await transformWorkspaceDir(root))
+        }
+      ])
+  },
+  {
+    title: 'Build projects',
+    task: () =>
+      new Listr([
+        { title: 'sorting projects', task: () => sortProjects() },
+        { title: 'building priority projects', task: () => buildPriority() },
+        {
+          title: 'building non priority projects',
+          task: () => buildNonPriority()
+        }
+      ])
+  }
+])
+
+// await checkCache()
+// projectDirs = await transformWorkspaceDir(root)
+// await sortProjects()
+// await buildPriority()
+// await buildNonPriority()
+
+try {
+  await tasks.run()
+  console.log(`done building in ${(Date.now() - start) / 1000}s`)
+} catch (error) {
+  console.error(error)
+}
